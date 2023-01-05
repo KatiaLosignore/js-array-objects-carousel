@@ -1,5 +1,5 @@
 // Array di oggetti
-const data = [
+const pictures = [
   {
     image: 'img/01.webp',
     title: 'Marvel\'s Spiderman Miles Morale',
@@ -23,12 +23,11 @@ const data = [
   }
 ];
 
-console.log(data);
 
 
 // Creo una funzione unica per i bottoni creati next e prev e thumbnails
 
-function changePic(target) {
+const changePic = target => {
     // Rimuovo la classe active dall'immagine corrente
     images[currentActiveIndex].classList.remove('active');
     thumbGallery[currentActiveIndex].classList.remove('active');
@@ -61,61 +60,110 @@ function changePic(target) {
 // Recupero i bottoni creati
 const prevButton = document.getElementById('prev');
 const nextButton = document.getElementById('next');
+const autoplaybutton = document.getElementById('autoplay-button');
+const reverseButton = document.getElementById('reverse-autoplay');
+
+
+// Creo una funzione start autoplay
+
+const startAutoplay = (direction) => {
+  autoplay = setInterval(() => {
+    changePic(direction);
+  }, 3000);
+
+}
+
+// Creo una funzione stop autoplay
+
+const stopAutoplay = () => {
+  clearInterval(autoplay);
+  isPlaying = false;
+
+  autoplaybutton.innerText = 'RESUME AUTOPLAY';
+}
 
 // Aggancio la funzione al bottone next
 nextButton.addEventListener('click', function () {
-  
+  stopAutoplay();
   changePic('next');
-
 });
 
 
 // Aggancio la funzione al bottone prev
 prevButton.addEventListener('click', function () {
-
+  stopAutoplay();
   changePic('prev');
-
 });
 
 
+// Faccio partire l'autoplay
+let autoplay;
+let direction = 'next';
+startAutoplay(direction);
+
+
+
+let isPlaying = true;
+
+// Aggancio il bottone di reverse
+reverseButton.addEventListener('click', () => {
+  // Stop Autoplay
+  clearInterval(autoplay);
+
+  // Inverto la direzione
+  direction = direction === 'next' ? 'prev' : 'next';
+
+  // Faccio ripartire l'autoplay
+  startAutoplay(direction);
+
+});
+
+// Aggancio un evento al bottone autoplay
+autoplaybutton.addEventListener('click', () => { 
+  isPlaying = !isPlaying;
+
+  if(!isPlaying){
+    autoplaybutton.innerText = 'RESUME AUTOPLAY';
+    clearInterval(autoplay);
+  } else {
+    autoplaybutton.innerText = 'STOP AUTOPLAY';
+    startAutoplay(direction);
+  }
+
+});
 
 // Recupero la galleria
 const gallery = document.querySelector('#carousel .gallery');
 
-// Recupero la galleria dei thumbnails
+// Recupero la galleria dei thumbnails6
 const thumbnails = document.getElementById('thumbnails');
 
+let galleryElements = '';
+let thumbnailsElements = '';
 
-const createImageElement = (object) => {
-  const imageElement = document.createElement('img');
-  imageElement.src = `${object.image}`;
-  const title = document.createElement('h4');
-  title.append(object.title);
-  const text = document.createElement('h6');
-  text.append(object.text);
-  imageElement.appendChild(title);
-  imageElement.appendChild(text);
+pictures.forEach((picture, i) => {
 
-  return imageElement;
+  const img = `<img src="${picture.image}" alt ="landscape_${i}">`;
+  thumbnailsElements += img;
 
-}
+  galleryElements += `
+    <figure>
+     ${img}
+      <figcaption>
+        <h2>${picture.title}</h2>
+        <h3>${picture.text}</h3>
+      </figcaption>
+    </figure>
+  `;
+}); 
 
 
-for (let i = 0; i < data.length; i++) {
-  const imagesData = data[i];
-
-  const card = createImageElement(imagesData);
-
-  gallery.appendChild(card);
-
-  // cloniamo l'immagine
-  const thumb = card.cloneNode();
-  thumbnails.appendChild(thumb);
-}
+gallery.innerHTML = galleryElements;
+thumbnails.innerHTML = thumbnailsElements;
 
 
 // Recupero le immagini
-const images = document.querySelectorAll('.gallery img');
+const images = document.querySelectorAll('.gallery figure');
 
 // Recupero i thumbnails
 const thumbGallery = document.querySelectorAll('#thumbnails img');
@@ -130,15 +178,14 @@ thumbGallery[currentActiveIndex].classList.add('active');
 
 
 
-
 // Creo un ciclo per i thumbnails e applico la classe active richiamando la funzione
-for (let i = 0; i < thumbGallery.length; i++) {
-   const thumb = thumbGallery[i];
-
-   thumb.addEventListener('click', function () {
+thumbGallery.forEach((thumb, i) => {
     
-    changePic(i);
+  thumb.addEventListener('click', function () {
+  stopAutoplay();
 
-   });
+  changePic(i);
+  });
 
-}
+});
+  
